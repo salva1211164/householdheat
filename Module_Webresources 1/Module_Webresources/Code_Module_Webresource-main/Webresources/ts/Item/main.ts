@@ -24,9 +24,9 @@ namespace Item.Main {
         if (isNewRecord) {
             workingConditionControl.setVisible(false);
             workingConditionAttribute.setValue(DEFAULT_WORKING_CONDITION);
-        } else { //if the has already been created
+        } else { //if the has already been created, show and lock the field
             workingConditionControl.setVisible(true);
-            workingConditionControl.setDisabled(true); //locks the field
+            workingConditionControl.setDisabled(true);
         }
     }
 
