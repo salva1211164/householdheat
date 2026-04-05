@@ -30,4 +30,22 @@ namespace Item.Main {
         }
     }
 
+    export async function retireItem(primaryControl: Xrm.FormContext): Promise<void> {
+        const formContext = primaryControl;
+        const itemId = formContext.data.entity.getId();
+
+        const confirm = await Xrm.Navigation.openConfirmDialog({
+            title: 'Retire Item',
+            text: 'Do you want to retire the selected Item? This action will change the status of the selected Item to Inactive.',
+        });
+
+        if (!confirm.confirmed) return;
+
+        await Xrm.WebApi.updateRecord('hhh_item', itemId, {
+            statecode: 1, //Inactive status code
+            statuscode: 814960004, //Retired Status Reason Code
+        });
+
+        await formContext.data.refresh(false);
+    }
 }
