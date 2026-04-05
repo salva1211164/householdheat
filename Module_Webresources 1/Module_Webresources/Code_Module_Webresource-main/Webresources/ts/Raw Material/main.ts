@@ -41,47 +41,37 @@ namespace RawMaterial.View {
         let imgName = '';
         let tooltip = '';
 
-        //Control logs
-        console.log('Full row data:', data);
-        console.log("Material Type: " + materialType);
-
         switch (materialType) {
             case RAW_MATERIAL_TYPE_VALUES.STAINLESS_STEEL:
             case RAW_MATERIAL_TYPE_VALUES.CARBON_STEEL:
                 imgName = ICONS.STEEL;
                 tooltip = 'Steel';
-                console.log(imgName + " - " + tooltip);
                 break;
 
             case RAW_MATERIAL_TYPE_VALUES.GLASS_FIBRE:
                 imgName = ICONS.GLASS;
                 tooltip = 'Glass';
-                console.log(imgName + " - " + tooltip);
                 break;
 
             case RAW_MATERIAL_TYPE_VALUES.ALUMINIUM:
             case RAW_MATERIAL_TYPE_VALUES.MAGNESIUM:
                 imgName = ICONS.LIGHT_METAL;
                 tooltip = 'Light Metal';
-                console.log(imgName + " - " + tooltip);
                 break;
 
             case RAW_MATERIAL_TYPE_VALUES.CRYSTALLINE_SILICON:
             case RAW_MATERIAL_TYPE_VALUES.AMORPHOUS_SILICON:
                 imgName = ICONS.SILICON;
                 tooltip = 'Silicon';
-                console.log(imgName + " - " + tooltip);
                 break;
 
             case RAW_MATERIAL_TYPE_VALUES.SOLUBLE_PLATINUM:
             case RAW_MATERIAL_TYPE_VALUES.GALLIUM_ARSENIDE:
                 imgName = ICONS.COMPOUND;
                 tooltip = 'Compound';
-                console.log(imgName + " - " + tooltip);
                 break;
 
             default:
-                    console.log('getMaterialTypeIcon: no match for materialType', materialType);
                     break;
         }
 
