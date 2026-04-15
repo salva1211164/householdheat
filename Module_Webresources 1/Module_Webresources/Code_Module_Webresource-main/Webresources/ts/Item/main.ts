@@ -3,6 +3,8 @@ namespace Item.Main {
      * Constants related to the Item Main functionality.
      */
     const WORKING_CONDITION = 'hhh_workingcondition';
+    const CREATION_DATE = 'hhh_creationdate';
+    const CREATED_ON = 'createdon';
     const DEFAULT_WORKING_CONDITION = 100;
 
     /**
@@ -19,12 +21,18 @@ namespace Item.Main {
         //get working condition control and attribute in order to be able to set visibility and default values
         const workingConditionControl = formContext.getControl<Xrm.Controls.StandardControl>(WORKING_CONDITION);
         const workingConditionAttribute = formContext.getAttribute<Xrm.Attributes.NumberAttribute>(WORKING_CONDITION);
+        //get creation date attribute in order to set the default value based on the created on field
+        const creationDateAttribute = formContext.getAttribute<Xrm.Attributes.DateAttribute>(CREATION_DATE);
+        const createdOnAttribute = formContext.getAttribute<Xrm.Attributes.DateAttribute>(CREATED_ON);
         const isNewRecord = formContext.ui.getFormType() === 1; //1 corresponds to when the form is created but not yet saved
 
         if (isNewRecord) {
             workingConditionControl.setVisible(false);
             workingConditionAttribute.setValue(DEFAULT_WORKING_CONDITION);
-        } else { //if the has already been created, show and lock the field
+        } else { //if the has already been created, show and lock working condition, and set creation date value if it is not already set
+            if (creationDateAttribute.getValue() === null && createdOnAttribute.getValue() !== null) {
+                creationDateAttribute.setValue(createdOnAttribute.getValue());
+            }
             workingConditionControl.setVisible(true);
             workingConditionControl.setDisabled(true);
         }
