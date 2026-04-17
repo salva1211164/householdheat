@@ -3,6 +3,7 @@ namespace Container.Main {
      * Constants related to the Container Main functionality.
      */
     const TYPE_OF_PRODUCT = 'hhh_typeofproduct';
+    const WEIGHT = 'hhh_weight';
     const PRODUCT_TYPE_VALUES = {
         Items: 2,
         Units: 1,
@@ -30,6 +31,7 @@ namespace Container.Main {
         if ((executionContext as any).getEventArgs().getDataLoadState() === 1) {
             formContext.getAttribute(TYPE_OF_PRODUCT).addOnChange(toggleSubgridSections);
             formContext.getAttribute(TYPE_OF_PRODUCT).addOnChange(warnOfItemContainer);
+            formContext.getAttribute(TYPE_OF_PRODUCT).addOnChange(warnOfWrongStockInContainer);
         }
     }
 
@@ -99,4 +101,24 @@ namespace Container.Main {
         }
 
     }
+
+    //Functions that send the user a warning when he changes the type of product in a container, and there's already stock in it from a different type
+    function warnOfWrongStockInContainer (executionContext: Xrm.Events.EventContext): void {
+        const formContext = executionContext.getFormContext();
+
+        const weightAttribute = formContext.getAttribute<Xrm.Attributes.NumberAttribute>(WEIGHT);
+
+        formContext.ui.clearFormNotification('warnOfWrongStockInContainer');
+
+        if (weightAttribute.getValue() > 0) {
+
+            formContext.ui.setFormNotification(
+                'This container has stock, changing the type of product may cause issues with the existing stock',
+                'WARNING',
+                'warnOfWrongStockInContainer',
+            );
+
+        }
+    }
+
 }
