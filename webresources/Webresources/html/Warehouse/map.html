@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Warehouse Coordinate Map</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; background-color: #f3f3f3; }
+        #map { height: 100vh; width: 100%; }
+        #message { text-align: center; padding-top: 20%; font-family: sans-serif; color: #666; }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <div id="message">Loading warehouse location...</div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const xrm = window.parent.Xrm;
+            const messageDiv = document.getElementById('message');
+            const mapDiv = document.getElementById('map');
+
+            // 1. Get the Address Lookup from the Warehouse form
+            // Ensure "hhh_addressid" matches your actual lookup field name
+            const addressLookup = xrm.Page.getAttribute("hhh_address")?.getValue();
+
+            console.log("Address Lookup Value:", addressLookup);
+
+            if (addressLookup && addressLookup[0]) {
+                const addressId = addressLookup[0].id.replace("{", "").replace("}", "");
+                const entityName = addressLookup[0].entityType;
+
+                // 2. Fetch Latitude and Longitude from the related Address record
+                xrm.WebApi.retrieveRecord(entityName, addressId, "?$select=hhh_latitude,hhh_longitude").then(
+                    function success(result) {
+                        const lat = result.hhh_latitude;
+                        const lon = result.hhh_longitude;
+
+                        if (lat != null && lon != null) {
+                            messageDiv.style.display = 'none';
+                            renderMap(lat, lon);
+                        } else {
+                            messageDiv.innerText = "Coordinates are missing on the linked Address record.";
+                        }
+                    },
+                    function (error) {
+                        console.error(error.message);
+                        messageDiv.innerText = "Error retrieving address details.";
+                    }
+                );
+            } else {
+                messageDiv.innerText = "No Address is linked to this Warehouse.";
+            }
+
+            function renderMap(lat, lon) {
+                const warehouseName = xrm.Page.getAttribute("hhh_name")?.getValue() || "Warehouse";
+                const map = L.map('map').setView([lat, lon], 16);
+
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap'
+                }).addTo(map);
+
+                L.marker([lat, lon]).addTo(map)
+                    .bindPopup(`<b>${warehouseName}</b>`)
+                    .openPopup();
+            }
+        });
+    </script>
+</body>
+</html>

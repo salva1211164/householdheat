@@ -6,6 +6,15 @@ namespace Item.Main {
     const CREATION_DATE = 'hhh_creationdate';
     const CREATED_ON = 'createdon';
     const DEFAULT_WORKING_CONDITION = 100;
+    const TAB_UTILITY = 'tab_utility';
+    const SOLAR_PANEL_SECTION = 'section_utility_records_solar_panel';
+    const BOILER_SECTION = 'section_utility_records_boiler';
+    const ITEM_PRODUCT = "hhh_product";
+    const PRODUCT_TYPE = "hhh_type";
+    const PRODUCT_TYPE_VALUES = {
+        Solar_Panel: 1,
+        Boiler: 2
+    };
 
     /**
      * Handles the form's onLoad.
@@ -26,6 +35,8 @@ namespace Item.Main {
         const createdOnAttribute = formContext.getAttribute<Xrm.Attributes.DateAttribute>(CREATED_ON);
         const isNewRecord = formContext.ui.getFormType() === 1; //1 corresponds to when the form is created but not yet saved
 
+        toggleSubgridSections(executionContext);
+
         if (isNewRecord) {
             workingConditionControl.setVisible(false);
             workingConditionAttribute.setValue(DEFAULT_WORKING_CONDITION);
@@ -35,6 +46,10 @@ namespace Item.Main {
             }
             workingConditionControl.setVisible(true);
             workingConditionControl.setDisabled(true);
+        }
+
+        if ((executionContext as any).getEventArgs().getDataLoadState() === 1) {
+            formContext.getAttribute(ITEM_PRODUCT).addOnChange(toggleSubgridSections);
         }
     }
 
@@ -55,5 +70,61 @@ namespace Item.Main {
         });
 
         await formContext.data.refresh(false);
+    }
+
+    /**
+     * Core logic to evaluate the type of Item and hide/show the respective subgrid sections accordingly.
+     */
+    function toggleSubgridSections(executionContext: Xrm.Events.EventContext): void {
+        const formContext = executionContext.getFormContext();
+
+        const productValue = formContext.getAttribute<Xrm.Attributes.LookupAttribute>(ITEM_PRODUCT)?.getValue();
+        
+        if (!productValue || productValue.length === 0) {
+            console.warn(`Attribute ${ITEM_PRODUCT} is missing from the form.`);
+            return;
+        }
+
+        const productId = productValue[0].id.replace("{", "").replace("}", "");
+
+        const tab = formContext.ui.tabs.get(TAB_UTILITY);
+        if (!tab) {
+            console.warn(`Tab ${TAB_UTILITY} is missing from the form.`);
+            return;
+        }
+
+        // Get the sections
+        const solarPanelSection = tab.sections.get(SOLAR_PANEL_SECTION);
+        const boilerSection = tab.sections.get(BOILER_SECTION);
+
+        // 1. Hide all sections by default (Provides a clean slate)
+        if (solarPanelSection) solarPanelSection.setVisible(false);
+        if (boilerSection) boilerSection.setVisible(false);
+
+        Xrm.WebApi.retrieveRecord(ITEM_PRODUCT, productId, "?$select=hhh_type").then(
+            function success(result) {
+                // Getting the text label instead of the number
+                const productTypeText = result["hhh_type@OData.Community.Display.V1.FormattedValue"];
+                const productTypeValue = result[PRODUCT_TYPE];
+                
+                console.log("Product Type Label:", productTypeText);
+
+                switch (productTypeValue) {
+                    case PRODUCT_TYPE_VALUES.Solar_Panel:
+                        if (solarPanelSection) solarPanelSection.setVisible(true);
+                        break;
+                    case PRODUCT_TYPE_VALUES.Boiler:
+                        if (boilerSection) boilerSection.setVisible(true);
+                        break;
+                    default:
+                        // If the field is null/empty, all sections remain hidden
+                        break;
+                }
+                
+            },
+            function (error) {
+                console.error("Error fetching product type:", error.message);
+            }
+        );
     }
 }
