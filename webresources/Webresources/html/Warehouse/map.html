@@ -20,8 +20,7 @@
             const messageDiv = document.getElementById('message');
             const mapDiv = document.getElementById('map');
 
-            // 1. Get the Address Lookup from the Warehouse form
-            // Ensure "hhh_addressid" matches your actual lookup field name
+            //get the address lookup value from the warehouse form
             const addressLookup = xrm.Page.getAttribute("hhh_address")?.getValue();
 
             console.log("Address Lookup Value:", addressLookup);
@@ -30,7 +29,7 @@
                 const addressId = addressLookup[0].id.replace("{", "").replace("}", "");
                 const entityName = addressLookup[0].entityType;
 
-                // 2. Fetch Latitude and Longitude from the related Address record
+                //get latitude and longitude from the address
                 xrm.WebApi.retrieveRecord(entityName, addressId, "?$select=hhh_latitude,hhh_longitude").then(
                     function success(result) {
                         const lat = result.hhh_latitude;

@@ -53,6 +53,9 @@ namespace Item.Main {
         }
     }
 
+    /**
+     * Handles the retirement of an item when triggered from the ribbon
+     */
     export async function retireItem(primaryControl: Xrm.FormContext): Promise<void> {
         const formContext = primaryControl;
         const itemId = formContext.data.entity.getId();
@@ -73,7 +76,7 @@ namespace Item.Main {
     }
 
     /**
-     * Core logic to evaluate the type of Item and hide/show the respective subgrid sections accordingly.
+     * Core logic to evaluate the type of Item and hide/show the respective utility record subgrid sections accordingly.
      */
     function toggleSubgridSections(executionContext: Xrm.Events.EventContext): void {
         const formContext = executionContext.getFormContext();
@@ -93,20 +96,22 @@ namespace Item.Main {
             return;
         }
 
-        // Get the sections
+        //get the subgrid sections
         const solarPanelSection = tab.sections.get(SOLAR_PANEL_SECTION);
         const boilerSection = tab.sections.get(BOILER_SECTION);
 
-        // 1. Hide all sections by default (Provides a clean slate)
+        //by default, hide both sections
         if (solarPanelSection) solarPanelSection.setVisible(false);
         if (boilerSection) boilerSection.setVisible(false);
 
+        //retrieve the product record to get the product type
         Xrm.WebApi.retrieveRecord(ITEM_PRODUCT, productId, "?$select=hhh_type").then(
             function success(result) {
                 // Getting the text label instead of the number
                 const productTypeText = result["hhh_type@OData.Community.Display.V1.FormattedValue"];
                 const productTypeValue = result[PRODUCT_TYPE];
                 
+                //added for debugging
                 console.log("Product Type Label:", productTypeText);
 
                 switch (productTypeValue) {
@@ -117,7 +122,6 @@ namespace Item.Main {
                         if (boilerSection) boilerSection.setVisible(true);
                         break;
                     default:
-                        // If the field is null/empty, all sections remain hidden
                         break;
                 }
                 

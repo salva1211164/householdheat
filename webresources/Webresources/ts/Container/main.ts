@@ -13,6 +13,16 @@ namespace Container.Main {
     const UNIT_SECTION = 'section_units';
     const RAW_MATERIAL_SECTION = 'section_rawmaterials';
     const TAB_GENERAL = 'tab_general';
+    const SIZE = 'hhh_size';
+    const CAPACITY = 'hhh_capacity';
+    const SIZE_VALUES = {
+        '20ft': 0,
+        '40ft': 1,
+    };
+    const CAPACITY_VALUES = {
+        '4000kg': 0,
+        '8000kg': 1,
+    };
 
     /**
      * Handles the form's onLoad.
@@ -25,6 +35,7 @@ namespace Container.Main {
     export async function onLoad(executionContext: Xrm.Events.EventContext) {
         const formContext = executionContext.getFormContext();
         
+        //needed in case it's an existing record
         toggleSubgridSections(executionContext);
         warnOfItemContainer(executionContext);
 
@@ -32,6 +43,7 @@ namespace Container.Main {
             formContext.getAttribute(TYPE_OF_PRODUCT).addOnChange(toggleSubgridSections);
             formContext.getAttribute(TYPE_OF_PRODUCT).addOnChange(warnOfItemContainer);
             formContext.getAttribute(TYPE_OF_PRODUCT).addOnChange(warnOfWrongStockInContainer);
+            formContext.getAttribute(SIZE).addOnChange(setCapacityBasedOnSize);
         }
     }
 
@@ -54,17 +66,17 @@ namespace Container.Main {
             return;
         }
 
-        // Get the sections
+        //get the three sections
         const itemsSection = tab.sections.get(ITEM_SECTION);
         const unitsSection = tab.sections.get(UNIT_SECTION);
         const rawMaterialsSection = tab.sections.get(RAW_MATERIAL_SECTION);
 
-        // 1. Hide all sections by default (Provides a clean slate)
+        //by default, hide all sections
         if (itemsSection) itemsSection.setVisible(false);
         if (unitsSection) unitsSection.setVisible(false);
         if (rawMaterialsSection) rawMaterialsSection.setVisible(false);
 
-        // 2. Get the current value and show the relevant section
+        //get the value of type of product and show the respective section based on that value
         const typeValue = typeAttribute.getValue();
 
         switch (typeValue) {
@@ -83,6 +95,9 @@ namespace Container.Main {
         }
     }
 
+    /**
+     * If it's an Item Container, show a notification
+     */
     function warnOfItemContainer (executionContext: Xrm.Events.EventContext): void {
         const formContext = executionContext.getFormContext();
 
@@ -119,6 +134,21 @@ namespace Container.Main {
             );
 
         }
+    }
+
+    //Function that sets the capacity of the container based on the size selected, a 20ft container has a 4000kg capacity, while a 40ft container has an 8000kg capacity
+    function setCapacityBasedOnSize (executionContext: Xrm.Events.EventContext): void {
+        const formContext = executionContext.getFormContext();
+
+        const sizeAttribute = formContext.getAttribute<Xrm.Attributes.OptionSetAttribute>(SIZE);
+        const capacityAttribute = formContext.getAttribute<Xrm.Attributes.OptionSetAttribute>(CAPACITY);
+
+        if (sizeAttribute.getValue() === SIZE_VALUES['20ft']) {
+            capacityAttribute.setValue(CAPACITY_VALUES['4000kg']);
+        } else if (sizeAttribute.getValue() === SIZE_VALUES['40ft']) {
+            capacityAttribute.setValue(CAPACITY_VALUES['8000kg']);
+        }
+    
     }
 
 }
